@@ -94,12 +94,15 @@ class Faultier:
     def _find_serial_port_macos(self, index = 0):
         i = 0
         ports = serial.tools.list_ports.comports()
+        faultiers = []
         for port in ports:
             if f"USB VID:PID={self.VID.upper()}:{self.PID.upper()}" in port.hwid:
-                if(i == index):
-                    return port.device
-                i += 1
-        return None
+                faultiers.append(port.device)
+        if len(faultiers) == 0:
+            return None
+        
+        faultiers.sort()
+        return faultiers[index]
 
     def _find_serial_port_linux(self, index = 0):
         if(index == 0):

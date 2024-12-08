@@ -52,7 +52,7 @@ def openocd_program(config, path):
         "openocd",
         "-f", "interface/tamarin.cfg",
         "-f", f"target/{config}.cfg",
-        "-c", f"init; nrf52_recover; program {path} verify; reset; exit"
+        "-c", f"init; program {path} verify; reset; exit"
     ]
     try:
         result = subprocess.run(cmd, check=True, text=True, capture_output=True)
