@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "faultier"
-version = "0.1.35"
+version = "0.1.38"
 #dynamic = ["version"]
 
 authors = [{ name = "Thomas 'stacksmashing' Roth", email = "code@stacksmashing.net"}]
@@ -23,9 +23,9 @@ dependencies = [
     "google",
     "protobuf",
     "tqdm",
-    "matplotlib",
+    # "matplotlib",
     "jupyter",
-    "numpy"
+    # "numpy"
 ]
 
 #[project.urls]

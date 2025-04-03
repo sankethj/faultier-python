@@ -39,18 +39,27 @@ class Faultier:
     VID = "2b3e"
     PID = "2343"
 
-    def __init__(self, path = None):
-        """
-        """
-        if path:
-            self.device = serial.Serial(path)
-        else:
-            path = self._find_serial_port()
+    def _open_auto(self):
+        self.index = 0
+        path = self._find_serial_port(self.index)
+        if not path:
+            raise Exception("No suitable serial port found.")
+        self.device = serial.Serial(path)
+        self.device.timeout = 5
+        try:
+            self._send_hello()
+            return
+        except self.device.SerialTimeoutException:
+            # Attempt second port
+            self.index = 1
+            path = self._find_serial_port(self.index)
             if not path:
                 raise Exception("No suitable serial port found.")
             self.device = serial.Serial(path)
-        self.device.timeout = 5
+            self.device.timeout = 5
+            self._send_hello()
 
+    def _send_hello(self):
         # Send hello command to get protocol version from Faultier
         hello = CommandHello()
         cmd = Command()
@@ -61,6 +70,19 @@ class Faultier:
             self.device.close()
             raise ValueError(f"Invalid Faultier version: Locally: {FAULTIER_VERSION} - Device: {response.hello.version}")
         
+
+    def __init__(self, path = None):
+        """
+        """
+        if path:
+            self.device = serial.Serial(path)
+            self.device.timeout = 5
+            # Attempt to send hello
+            self._send_hello()
+        else:
+            self._open_auto()
+
+        
         self.default_settings()
     
     def get_serial_path(self):
@@ -69,7 +91,10 @@ class Faultier:
         and the second one is the UART bridge onto the 20-pin connector.
         This function returns the path to the second serial port.
         """
-        return self._find_serial_port(index=1)
+        if(self.index == 0):
+            return self._find_serial_port(index=1)
+        else:
+            return self._find_serial_port(index=0)
 
     def _find_serial_port(self, index = 0):
         system = platform.system()
@@ -85,7 +110,7 @@ class Faultier:
     def _find_serial_port_windows(self, index = 0):
         i = 0
         for port in serial.tools.list_ports.comports():
-            if self.VID.lower() in port.hwid.lower() and self.PID.lower() in port.hwid.lower() and not "location" in port.hwid.lower():
+            if self.VID.lower() in port.hwid.lower() and self.PID.lower() in port.hwid.lower():
                 if(i == index):
                     return port.device
                 i += 1
